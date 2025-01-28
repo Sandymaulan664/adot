@@ -1,0 +1,35 @@
+/* sidebar.css */
+
+/* Styling untuk container sidebar */
+.sidebar-container {
+    width: 200px;
+    background: #ffff;
+    padding: 20px;
+    height: auto;
+    /* Full height of the viewport */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling item teks yang tidak aktif */
+.sidebar-item-text {
+    font-size: 18px !important;
+    font-weight: normal !important;
+    color: #757575;
+}
+
+/* Styling item teks yang aktif */
+.sidebar-item-text-active {
+    font-size: 18px !important;
+    font-weight: bold !important;
+    color: #00796b;
+}
+
+/* Styling item list yang aktif */
+.sidebar-item-active {
+    background-color: #e0f7fa;
+}
+
+/* Styling item list yang saat hover */
+.sidebar-item-hover:hover {
+    background: #e0e0e0;
+}
