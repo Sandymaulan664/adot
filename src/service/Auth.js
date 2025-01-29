@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-let url = 'http://localhost:10052'
+let url = 'http://103.150.197.185:10052/'
 
 export default axios.create({
     baseURL: url,
@@ -12,7 +12,7 @@ export default axios.create({
         //'X-API-Key': abcdefgh123456789,
         // 'user_key': '6ab0c0c4f7c40f3c7747329890cc5e78',
         // 'user_key':'6ab0c0c4f7c40f3c7747329890cc5e78',
-        'Content-Type': 'application/json',
+        //'Content-Type': 'application/json',
     },
     responseType: 'json'
 });

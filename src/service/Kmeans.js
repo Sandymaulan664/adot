@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-let url = 'http://localhost:10050'
+let url = 'http://103.150.197.185:10050/'
 
 export default axios.create({
     baseURL: url,

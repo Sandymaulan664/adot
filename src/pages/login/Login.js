@@ -3,6 +3,7 @@ import { TextField, Button, Typography, Box, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import logo from '../../assets/image/logo_main.png';
 import '../../assets/css/_login.css';
+import Auth from '../../service/Auth';
 
 const Login = ({ onLogin }) => {
     const [user, setUser] = useState('');
@@ -10,18 +11,25 @@ const Login = ({ onLogin }) => {
     const [error, setError] = useState(null);
     const navigate = useNavigate(); // Inisialisasi useNavigate
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         setError(null);
     
-        const validUsername = 'admin'; 
-        const validPassword = 'password123'; 
-        if (user === validUsername && password === validPassword) {
+        const dataAuth = {
+            username: user,
+            password: password,
+            refreshToken: "", 
+        };
+        console.log("Login Payload:", dataAuth);
+        try {
+            const response = await Auth.post('/auth/signin', dataAuth);
+            console.log('Login Response:', response.data);
             onLogin();
-            localStorage.setItem('data', JSON.stringify({ username: user })); 
-            navigate('/'); // Arahkan ke dashboard setelah login berhasil
-        } else {
-            setError('Login failed. Please check your credentials.'); 
+            localStorage.setItem('data', JSON.stringify(response.data.authorities));
+            navigate('/');
+        } catch (error) {
+            console.error('Login Error:', error.response?.data || error.message);
+            setError(error.response?.data?.message || 'Login failed.');
         }
     };
     

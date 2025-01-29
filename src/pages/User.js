@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
+import axios from 'axios';
 import Swal from "sweetalert2";
 import '../assets/css/User_s.css';
+import {
+  Search,
+  Add,
+  Edit,
+  Delete,
+} from "@mui/icons-material";
 import {
   Box,
   TextField,
@@ -18,44 +25,39 @@ import {
   IconButton,
 } from "@mui/material";
 
-/* icon */
-import {
-  Search,
-  Add,
-  Edit,
-  Delete,
-} from "@mui/icons-material";
-
 const PengaturanUser = () => {
-  /* Dummy data user */
-  const generateDummyData = () => {
-    const dummyData = [];
-    for (let i = 1; i <= 100; i++) {
-      dummyData.push({
-        id: i,
-        userName: `user_${i}`,
-        namaLengkap: `Nama Lengkap ${i}`,
-        email: `user${i}@example.com`,
-        asalSekolah: `Sekolah ${i}`,
-        isActive: i % 2 === 0,
-      });
-    } return dummyData;
-  };
-  const [userdata, setUserdata] = useState(generateDummyData());
+  const [userdata, setUserdata] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  /* Dummy data user */
+  const fetchData = async () => {
+    try {
+      const response = await axios.get('http://103.150.197.185:10052/user/listDaftarUser');
+      console.log('Data yang diterima:', response.data); // Memeriksa data yang diterima
+      setUserdata(Array.isArray(response.data) ? response.data : []); // Pastikan data adalah array
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to fetch data');
+      setLoading(false);
+    }
+  };
 
   /* Add user */
   const [addOpen, setAddOpen] = useState(false);
   const [newUser, setNewUser] = useState({
     namaLengkap: "",
+    username: "",
     asalSekolah: "",
     email: "",
+    password: "",
+
   });
-  const handleAddOpen = () => { setNewUser({ namaLengkap: "", asalSekolah: "", email: "" }); setAddOpen(true); };
+  const handleAddOpen = () => { setNewUser({ namaLengkap: "", username: "", asalSekolah: "", email: "", password: "", }); setAddOpen(true); };
   const handleAddClose = () => { setAddOpen(false); };
-  const handleAddSubmit = () => {
+  const handleAddSubmit = async () => {
     handleAddClose();
-    setTimeout(() => {
+    setTimeout(async () => {
       Swal.fire({
         title: "Konfirmasi Simpan Data",
         text: "Apakah Anda yakin ingin menyimpan data ini?",
@@ -66,14 +68,30 @@ const PengaturanUser = () => {
         confirmButtonText: "Save",
         cancelButtonText: "Cancel",
         reverseButtons: true,
-      }).then((result) => {
+      }).then(async (result) => {
         if (result.isConfirmed) {
-          setUserdata([...userdata, { ...newUser, id: userdata.length + 1, isActive: true }]);
-          Swal.fire("Berhasil!", "Data berhasil disimpan.", "success");
+          try {
+            const userData = {
+              ...newUser,
+              idRole: 2,
+            };
+            const response = await axios.post('http://103.150.197.185:10052/user/createuser', userData);
+            if (response.status === 200) {
+              setUserdata([...userdata, { ...userData, id: userdata.length + 1, isActive: true }]);
+              Swal.fire("Berhasil!", "Data berhasil disimpan.", "success");
+              window.location.reload();
+            } else {
+              Swal.fire("Gagal!", "Terjadi kesalahan saat menyimpan data.", "error");
+            }
+          } catch (err) {
+            console.error(err);
+            Swal.fire("Gagal!", "Terjadi kesalahan saat menyimpan data.", "error");
+          }
         }
       });
     }, 300);
   };
+
   const handleNewChange = (field, value) => {
     setNewUser((prev) => ({ ...prev, [field]: value }));
   };
@@ -82,7 +100,7 @@ const PengaturanUser = () => {
   /* Search */
   const [searchValue, setSearchValue] = useState("");
   const handleSearch = () => {
-    const filteredData = generateDummyData().filter(
+    const filteredData = userdata.filter(
       (user) =>
         user.userName.toLowerCase().includes(searchValue.toLowerCase()) ||
         user.namaLengkap.toLowerCase().includes(searchValue.toLowerCase()) ||
@@ -91,7 +109,10 @@ const PengaturanUser = () => {
     );
     setUserdata(filteredData);
   };
-  useEffect(() => { if (!searchValue) { setUserdata(generateDummyData()); } }, [searchValue]);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
 
   /* Edit */
@@ -99,37 +120,61 @@ const PengaturanUser = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const handleEditOpen = (user) => { setSelectedUser(user); setEditOpen(true); };
   const handleEditClose = () => { setSelectedUser(null); setEditOpen(false); };
-  const handleEditSubmit = () => {
+  const handleEditSubmit = async () => {
     handleEditClose();
-    setTimeout(() => {
+    setTimeout(async () => {
       Swal.fire({
         title: "Konfirmasi Simpan Data",
         text: "Apakah Anda yakin ingin menyimpan perubahan data ini?",
         icon: "question",
         showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
         confirmButtonText: "Save",
         cancelButtonText: "Cancel",
         reverseButtons: true,
-      }).then((result) => {
+      }).then(async (result) => {
         if (result.isConfirmed) {
-          const updatedData = userdata.map((user) =>
-            user.id === selectedUser.id ? { ...selectedUser } : user
-          );
-          setUserdata(updatedData);
-          Swal.fire("Berhasil!", "Data berhasil diperbarui.", "success");
+          try {
+            // Persiapkan data untuk dikirim ke API
+            const updatedUser = {
+              email: selectedUser.email,
+              namaLengkap: selectedUser.namaLengkap,
+              userName: selectedUser.userName,
+              updatedBy: "admin", // Sesuaikan dengan user yang sedang login
+            };
+
+            // Kirim data ke API untuk update
+            const response = await axios.post(`http://103.150.197.185:10052/user/update/`, updatedUser);
+
+            if (response.status === 200) {
+              // Update data lokal (state userdata) dengan data yang sudah diperbarui
+              const updatedData = userdata.map((user) =>
+                user.userName === selectedUser.userName ? { ...user, ...updatedUser } : user
+              );
+              setUserdata(updatedData); // Update state dengan data yang sudah diperbarui
+              Swal.fire("Berhasil!", "Data berhasil diperbarui.", "success");
+            } else {
+              Swal.fire("Gagal!", "Terjadi kesalahan saat memperbarui data.", "error");
+            }
+          } catch (err) {
+            console.error(err);
+            Swal.fire("Gagal!", "Terjadi kesalahan saat memperbarui data.", "error");
+          }
         }
       });
     }, 300);
   };
+
   const handleEditChange = (field, value) => {
     setSelectedUser((prev) => ({ ...prev, [field]: value }));
   };
 
 
   /* Delete */
-  const handleDelete = (userId) => {
+  const handleDelete = async (userName) => {
+    console.log('sadddddddddddddddddddddddddddddd', userName);
+
     Swal.fire({
       title: "Apakah Anda yakin?",
       text: "Data yang dihapus tidak dapat dikembalikan!",
@@ -139,24 +184,46 @@ const PengaturanUser = () => {
       cancelButtonColor: "#3085d6",
       cancelButtonText: "Cancel",
       confirmButtonText: "Delete!",
-      reverseButtons: true
-    }).then((result) => {
+      reverseButtons: true,
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        setUserdata(userdata.filter((user) => user.id !== userId));
-        Swal.fire("Terhapus!", "Data berhasil dihapus.", "success");
+        try {
+          // Menggunakan PUT untuk penghapusan data
+          const response = await fetch(`http://103.150.197.185:10052/user/delete/${userName}`,
+
+            {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json', }
+            });
+
+          console.log('Respons dari server:', response);
+          console.log('saaaaaaaaaaaaa', response)
+
+          if (response.status === 200) {
+            setUserdata(userdata.filter((user) => user.userName !== userName));
+            Swal.fire("Terhapus!", "Data berhasil dihapus.", "success");
+          } else {
+            Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus data.", "error");
+          }
+        } catch (err) {
+          console.error(err);
+          Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus data.", "error");
+        }
       }
     });
   };
 
 
 
+
+
   /* pagination */
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const paginatedData = userdata.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const paginatedData = Array.isArray(userdata) ? userdata.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) : [];
 
   return (
-    <Box sx={{ padding: 2 }}>
+    <Box sx={{ padding: 2, }}>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }}>
 
@@ -212,7 +279,7 @@ const PengaturanUser = () => {
                   </TableCell>
                   <TableCell className="action-cell">
                     <IconButton color="primary" onClick={() => handleEditOpen(user)}> <Edit /> </IconButton>
-                    <IconButton onClick={() => handleDelete(user.id)} className="delete-button">
+                    <IconButton onClick={() => handleDelete(user.userName)} className="delete-button">
                       <Delete />
                     </IconButton>
                   </TableCell>
@@ -278,9 +345,23 @@ const PengaturanUser = () => {
           />
           <TextField
             fullWidth
+            label="User Name"
+            value={newUser.username}
+            onChange={(e) => handleNewChange("username", e.target.value)}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
             label="Email"
             value={newUser.email}
             onChange={(e) => handleNewChange("email", e.target.value)}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Password"
+            value={newUser.password}
+            onChange={(e) => handleNewChange("password", e.target.value)}
             margin="normal"
           />
           <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
