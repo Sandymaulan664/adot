@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import { Dashboard, K_means, Rekap_data, User, Login, ProtectedRoute, Clustering } from './pages'; 
+import Data_stunting from './pages/Data_stunting';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -68,11 +69,11 @@ const App = () => {
           }
         />
         <Route
-          path="/clustering"
+          path="/data_stunting"
           element={
             isAuthenticated ? (
               <Layout onLogout={logout}>
-                <Clustering />
+                <Data_stunting />
               </Layout>
             ) : (
               <Navigate to="/login" />

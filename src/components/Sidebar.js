@@ -12,7 +12,7 @@ const Sidebar = () => {
     { text: 'Dashboard', icon: <DashboardIcon />, link: '/' },
     { text: 'User', icon: <PeopleIcon />, link: '/user' },
     { text: 'Rekap Data', icon: <StorageIcon />, link: '/rekap_data' },
-    { text: 'Clustering', icon: <GridViewIcon />, link: '/clustering' },
+    { text: 'Data Stunting', icon: <GridViewIcon />, link: '/clustering' },
     { text: 'Grafik K-means', icon: <TableChartIcon />, link: '/k_means' },
   ];
 

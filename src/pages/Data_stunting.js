@@ -27,7 +27,7 @@ import {
   Delete,
 } from "@mui/icons-material";
 
-const Clustering = () => {
+const Data_stunting = () => {
   /* Dummy data user */
   const generateDummyData = () => {
     const dummyData = [];
@@ -351,4 +351,4 @@ const Clustering = () => {
   );
 };
 
-export default Clustering;
+export default Data_stunting;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import '../assets/css/User_s.css';
+import axios from 'axios';
 import {
   Box,
   TextField,
@@ -27,22 +28,25 @@ import {
 } from "@mui/icons-material";
 
 const RekapData = () => {
-  /* Dummy data user */
-  const generateDummyData = () => {
-    const dummyData = [];
-    for (let i = 1; i <= 100; i++) {
-      dummyData.push({
-        id: i,
-        userName: `susu${i}`,
-        namaLengkap: `sehat ${i}`,
-        email: `enak${i}@kenyal.com`,
-        asalSekolah: `sempak ${i}`,
-        isActive: i % 2 === 0,
-      });
-    } return dummyData;
-  };
-  const [userdata, setUserdata] = useState(generateDummyData());
+  const [datamurid, setDatamurid] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  const fetchData = async () => {
+    try {
+      const response = await axios.get("http://103.150.197.185:10050/stunting/getDataMurid");
+      console.log("Data yang diterima:", response.data);
+      setDatamurid(Array.isArray(response.data) ? response.data : []);
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to fetch data");
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   /* Add user */
   const [addOpen, setAddOpen] = useState(false);
@@ -68,7 +72,7 @@ const RekapData = () => {
         reverseButtons: true,
       }).then((result) => {
         if (result.isConfirmed) {
-          setUserdata([...userdata, { ...newUser, id: userdata.length + 1, isActive: true }]);
+          setDatamurid([...datamurid, { ...newUser, id: datamurid.length + 1, isActive: true }]);
           Swal.fire("Berhasil!", "Data berhasil disimpan.", "success");
         }
       });
@@ -82,17 +86,14 @@ const RekapData = () => {
   /* Search */
   const [searchValue, setSearchValue] = useState("");
   const handleSearch = () => {
-    const filteredData = generateDummyData().filter(
-      (user) =>
-        user.userName.toLowerCase().includes(searchValue.toLowerCase()) ||
-        user.namaLengkap.toLowerCase().includes(searchValue.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchValue.toLowerCase()) ||
-        user.asalSekolah.toLowerCase().includes(searchValue.toLowerCase())
+    const filteredData = datamurid.filter(
+      (murid) =>
+        murid.namaLengkap.toLowerCase().includes(searchValue.toLowerCase()) ||
+        murid.email.toLowerCase().includes(searchValue.toLowerCase()) ||
+        murid.asalSekolah.toLowerCase().includes(searchValue.toLowerCase())
     );
-    setUserdata(filteredData);
+    setDatamurid(filteredData);
   };
-  useEffect(() => { if (!searchValue) { setUserdata(generateDummyData()); } }, [searchValue]);
-
 
   /* Edit */
   const [editOpen, setEditOpen] = useState(false);
@@ -114,10 +115,10 @@ const RekapData = () => {
         reverseButtons: true,
       }).then((result) => {
         if (result.isConfirmed) {
-          const updatedData = userdata.map((user) =>
+          const updatedData = datamurid.map((user) =>
             user.id === selectedUser.id ? { ...selectedUser } : user
           );
-          setUserdata(updatedData);
+          setDatamurid(updatedData);
           Swal.fire("Berhasil!", "Data berhasil diperbarui.", "success");
         }
       });
@@ -142,7 +143,7 @@ const RekapData = () => {
       reverseButtons: true
     }).then((result) => {
       if (result.isConfirmed) {
-        setUserdata(userdata.filter((user) => user.id !== userId));
+        setDatamurid(datamurid.filter((user) => user.id !== userId));
         Swal.fire("Terhapus!", "Data berhasil dihapus.", "success");
       }
     });
@@ -153,7 +154,7 @@ const RekapData = () => {
   /* pagination */
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const paginatedData = userdata.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const paginatedData = datamurid.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Box sx={{ padding: 2 }}>
@@ -188,31 +189,45 @@ const RekapData = () => {
           <TableHead>
             <TableRow className="table-head-row">
               <TableCell className="table-cell-head"> No  </TableCell>
-              <TableCell className="table-cell-head"> NAMA  </TableCell>
-              <TableCell className="table-cell-head"> USERNAME  </TableCell>
-              <TableCell className="table-cell-head"> EMAIL   </TableCell>
-              <TableCell className="table-cell-head"> ASAL SEKOLAH  </TableCell>
-              <TableCell className="table-cell-head"> STATUS </TableCell>
-              <TableCell className="table-cell-head"> ACTION </TableCell>
+              <TableCell className="table-cell-head"> Nama  </TableCell>
+              <TableCell className="table-cell-head"> Jeniskelamin  </TableCell>
+              <TableCell className="table-cell-head"> Tempat lahir  </TableCell>
+              <TableCell className="table-cell-head"> Tanggal Lahir   </TableCell>
+              <TableCell className="table-cell-head"> Agama  </TableCell>
+              <TableCell className="table-cell-head"> Alamat  </TableCell>
+              <TableCell className="table-cell-head"> Umur  </TableCell>
+              <TableCell className="table-cell-head"> Tinggi Badan  </TableCell>
+              <TableCell className="table-cell-head"> Berat Badan  </TableCell>
+              <TableCell className="table-cell-head"> Tahun   Ajaran  </TableCell>
+              <TableCell className="table-cell-head"> Kelas  </TableCell>
+              <TableCell className="table-cell-head"> Status </TableCell>
+              <TableCell className="table-cell-head"> Action </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {paginatedData.length > 0 ? (
-              paginatedData.map((user, index) => (
+              paginatedData.map((murid, index) => (
                 <TableRow key={index}>
                   <TableCell className="table-cell-body">
                     {index + 1 + page * rowsPerPage}
                   </TableCell>
-                  <TableCell className="table-cell-body">{user.namaLengkap}</TableCell>
-                  <TableCell className="table-cell-body">{user.userName}</TableCell>
-                  <TableCell className="table-cell-body">{user.email}</TableCell>
-                  <TableCell className="table-cell-body">{user.asalSekolah}</TableCell>
-                  <TableCell className={`table-cell-body ${user.isActive ? 'status-active' : 'status-inactive'}`}>
-                    {user.isActive ? 'Active' : 'Inactive'}
+                  <TableCell className="table-cell-body">{murid.namaMurid}</TableCell>
+                  <TableCell className="table-cell-body">{murid.jenisKelamin}</TableCell>
+                  <TableCell className="table-cell-body">{murid.tempatLahir}</TableCell>
+                  <TableCell className="table-cell-body">{murid.tanggalLahir}</TableCell>
+                  <TableCell className="table-cell-body">{murid.agama}</TableCell>
+                  <TableCell className="table-cell-body">{murid.alamat}</TableCell>
+                  <TableCell className="table-cell-body">{murid.umur}</TableCell>
+                  <TableCell className="table-cell-body">{murid.tinggiBadan}</TableCell>
+                  <TableCell className="table-cell-body">{murid.beratBadan}</TableCell>
+                  <TableCell className="table-cell-body">{murid.tahunAjaran}</TableCell>
+                  <TableCell className="table-cell-body">{murid.kelas}</TableCell>
+                  <TableCell className={`table-cell-body ${murid.isActive ? 'status-active' : 'status-inactive'}`}>
+                    {murid.isActive ? 'Active' : 'Inactive'}
                   </TableCell>
                   <TableCell className="action-cell">
-                    <IconButton color="primary" onClick={() => handleEditOpen(user)}> <Edit /> </IconButton>
-                    <IconButton onClick={() => handleDelete(user.id)} className="delete-button">
+                    <IconButton color="primary" onClick={() => handleEditOpen(murid)}> <Edit /> </IconButton>
+                    <IconButton onClick={() => handleDelete(murid.id)} className="delete-button">
                       <Delete />
                     </IconButton>
                   </TableCell>
@@ -233,7 +248,7 @@ const RekapData = () => {
       <Box className="pagination-container">
         <p></p>
         <Pagination
-          count={Math.ceil(userdata.length / rowsPerPage)}
+          count={Math.ceil(datamurid.length / rowsPerPage)}
           page={page + 1}
           onChange={(event, value) => setPage(value - 1)}
           siblingCount={1}

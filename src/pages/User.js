@@ -30,12 +30,11 @@ const PengaturanUser = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  /* Dummy data user */
   const fetchData = async () => {
     try {
       const response = await axios.get('http://103.150.197.185:10052/user/listDaftarUser');
-      console.log('Data yang diterima:', response.data); // Memeriksa data yang diterima
-      setUserdata(Array.isArray(response.data) ? response.data : []); // Pastikan data adalah array
+      console.log('Data yang diterima:', response.data);
+      setUserdata(Array.isArray(response.data) ? response.data : []);
       setLoading(false);
     } catch (err) {
       setError('Failed to fetch data');
@@ -120,8 +119,16 @@ const PengaturanUser = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const handleEditOpen = (user) => { setSelectedUser(user); setEditOpen(true); };
   const handleEditClose = () => { setSelectedUser(null); setEditOpen(false); };
+  const toggleUserStatus = () => {
+    setSelectedUser((prev) => ({
+      ...prev,
+      isActive: !prev.isActive, // Toggle status
+    }));
+  };
+
   const handleEditSubmit = async () => {
     handleEditClose();
+
     setTimeout(async () => {
       Swal.fire({
         title: "Konfirmasi Simpan Data",
@@ -136,23 +143,22 @@ const PengaturanUser = () => {
       }).then(async (result) => {
         if (result.isConfirmed) {
           try {
-            // Persiapkan data untuk dikirim ke API
             const updatedUser = {
+              idUser: selectedUser.idUser,
               email: selectedUser.email,
               namaLengkap: selectedUser.namaLengkap,
               userName: selectedUser.userName,
-              updatedBy: "admin", // Sesuaikan dengan user yang sedang login
+              updatedBy: "admin",
+              active: selectedUser.isActive,
             };
 
-            // Kirim data ke API untuk update
-            const response = await axios.post(`http://103.150.197.185:10052/user/update/`, updatedUser);
+            const response = await axios.post(`http://103.150.197.185:10052/user/update`, updatedUser);
 
             if (response.status === 200) {
-              // Update data lokal (state userdata) dengan data yang sudah diperbarui
               const updatedData = userdata.map((user) =>
-                user.userName === selectedUser.userName ? { ...user, ...updatedUser } : user
+                user.idUser === selectedUser.idUser ? { ...user, ...updatedUser } : user
               );
-              setUserdata(updatedData); // Update state dengan data yang sudah diperbarui
+              setUserdata(updatedData);
               Swal.fire("Berhasil!", "Data berhasil diperbarui.", "success");
             } else {
               Swal.fire("Gagal!", "Terjadi kesalahan saat memperbarui data.", "error");
@@ -166,14 +172,15 @@ const PengaturanUser = () => {
     }, 300);
   };
 
+
   const handleEditChange = (field, value) => {
     setSelectedUser((prev) => ({ ...prev, [field]: value }));
   };
 
 
   /* Delete */
-  const handleDelete = async (userName) => {
-    console.log('sadddddddddddddddddddddddddddddd', userName);
+  const handleDelete = async (idUser) => {
+    console.log('ID User yang akan dihapus:', idUser);
 
     Swal.fire({
       title: "Apakah Anda yakin?",
@@ -188,19 +195,14 @@ const PengaturanUser = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          // Menggunakan PUT untuk penghapusan data
-          const response = await fetch(`http://103.150.197.185:10052/user/delete/${userName}`,
-
-            {
-              method: 'DELETE',
-              headers: { 'Content-Type': 'application/json', }
-            });
-
+          const response = await fetch(`http://103.150.197.185:10052/user/delete?idUser=${idUser}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+          });
           console.log('Respons dari server:', response);
-          console.log('saaaaaaaaaaaaa', response)
 
           if (response.status === 200) {
-            setUserdata(userdata.filter((user) => user.userName !== userName));
+            setUserdata(userdata.filter((user) => user.idUser !== idUser));
             Swal.fire("Terhapus!", "Data berhasil dihapus.", "success");
           } else {
             Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus data.", "error");
@@ -212,10 +214,6 @@ const PengaturanUser = () => {
       }
     });
   };
-
-
-
-
 
   /* pagination */
   const [page, setPage] = useState(0);
@@ -279,7 +277,7 @@ const PengaturanUser = () => {
                   </TableCell>
                   <TableCell className="action-cell">
                     <IconButton color="primary" onClick={() => handleEditOpen(user)}> <Edit /> </IconButton>
-                    <IconButton onClick={() => handleDelete(user.userName)} className="delete-button">
+                    <IconButton onClick={() => handleDelete(user.idUser)} className="delete-button">
                       <Delete />
                     </IconButton>
                   </TableCell>
@@ -346,8 +344,8 @@ const PengaturanUser = () => {
           <TextField
             fullWidth
             label="User Name"
-            value={newUser.username}
-            onChange={(e) => handleNewChange("username", e.target.value)}
+            value={newUser.userName}  // Pastikan konsisten penamaannya
+            onChange={(e) => handleNewChange("userName", e.target.value)}  // Penyesuaian properti
             margin="normal"
           />
           <TextField
@@ -364,6 +362,7 @@ const PengaturanUser = () => {
             onChange={(e) => handleNewChange("password", e.target.value)}
             margin="normal"
           />
+
           <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
             <Button variant="contained" color="secondary" onClick={handleAddClose}> Cancel </Button>
             <Button variant="contained" color="primary" onClick={handleAddSubmit}> Save </Button>
@@ -417,6 +416,29 @@ const PengaturanUser = () => {
                 onChange={(e) => handleEditChange("asalSekolah", e.target.value)}
                 margin="normal"
               />
+             {/*  hidupin klo mau update status
+              <Typography variant="body2" margin="normal">
+                <Box display="flex" justifyContent="space-between">
+                  
+                  <Button
+                    variant="contained"
+                    color="success"
+                    disabled={selectedUser?.isActive}
+                    onClick={() => toggleUserStatus(true)}
+                  >
+                    Activate
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    disabled={!selectedUser?.isActive}
+                    onClick={() => toggleUserStatus(false)} 
+                  >
+                    Deactivate
+                  </Button>
+                </Box>
+              </Typography> */}
+
 
               <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
                 <Button variant="contained" color="secondary" onClick={handleEditClose}> Cancel </Button>
