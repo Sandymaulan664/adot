@@ -157,7 +157,7 @@ const RekapData = () => {
   const paginatedData = datamurid.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <Box sx={{ padding: 2 }}>
+    <Box sx={{ padding: 5, marginTop:"50px", minHeight: "100vh" }}>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }}>
 

@@ -12,12 +12,12 @@ const Sidebar = () => {
     { text: 'Dashboard', icon: <DashboardIcon />, link: '/' },
     { text: 'User', icon: <PeopleIcon />, link: '/user' },
     { text: 'Rekap Data', icon: <StorageIcon />, link: '/rekap_data' },
-    { text: 'Data Stunting', icon: <GridViewIcon />, link: '/clustering' },
+    { text: 'Data Stunting', icon: <GridViewIcon />, link: '/data_stunting' },
     { text: 'Grafik K-means', icon: <TableChartIcon />, link: '/k_means' },
   ];
 
   return (
-    <div className="sidebar-container">
+    <div className="sidebar-container" style={{ position: 'fixed', top: '70px', left: 0, width: '240px', height: 'calc(100vh - 60px)', paddingTop: '10px' }}>
       <List>
         {menuItems.map((item, index) => (
           <ListItem button key={index} component={Link} to={item.link}
