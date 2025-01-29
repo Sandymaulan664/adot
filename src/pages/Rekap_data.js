@@ -17,6 +17,10 @@ import {
   Modal,
   Pagination,
   IconButton,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControl,
 } from "@mui/material";
 
 /* icon */
@@ -31,10 +35,17 @@ const RekapData = () => {
   const [datamurid, setDatamurid] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [tahunAjaran, setTahunAjaran] = useState(""); // State untuk tahun ajaran
+  const [kelas, setKelas] = useState(""); // State untuk kelas
+  // Contoh daftar kelas dan tahun ajaran
+  const kelasOptions = ["1", "2", "3", "4", "5", "6"];
+  const tahunAjaranOptions = ["2021/2022", "2022/2023", "2023/2024"];
 
   const fetchData = async () => {
     try {
-      const response = await axios.get("http://103.150.197.185:10050/stunting/getDataMurid");
+      const response = await axios.get("http://103.150.197.185:10050/stunting/getDataMurid", {
+        params: { kelas, tahunAjaran }
+      });
       console.log("Data yang diterima:", response.data);
       setDatamurid(Array.isArray(response.data) ? response.data : []);
       setLoading(false);
@@ -158,18 +169,18 @@ const RekapData = () => {
 
   return (
     <Box sx={{ padding: 2 }}>
+      {/* Select Kelas */}
+      <Box sx={{ display: "flex",  gap: 2, alignItems: "center"}}>
 
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }}>
-
-        <Box className="add-user-container">
-          <IconButton onClick={handleAddOpen} className="add-user-button">
+        <Box className="add-user-container" >
+          <IconButton onClick={handleAddOpen} className="add-user-button" marginTop={2}>
             <Typography className="add-user-text"> Add User </Typography>
             <Add className="add-user-icon" />
           </IconButton>
         </Box>
 
-        <Box className="search-bar-container">
-          <TextField variant="outlined" placeholder="Cari sesuatu...hmmm" value={searchValue} className="search-input" onChange={(e) => setSearchValue(e.target.value)}
+        <Box className="search-bar-container" >
+          <TextField marginTop={2} variant="outlined" placeholder="Cari sesuatu...hmmm" value={searchValue} className="search-input" onChange={(e) => setSearchValue(e.target.value)}
             onKeyPress={(e) => { if (e.key === "Enter") { handleSearch(); } }}
             InputProps={{
               startAdornment: (
@@ -181,6 +192,41 @@ const RekapData = () => {
             }}
           />
         </Box>
+
+        <FormControl sx={{ minWidth: 150 }} marginTop={2} variant="outlined" size="small">
+          <InputLabel shrink={true}>Kelas</InputLabel>
+          <Select
+            value={kelas}
+            onChange={(e) => setKelas(e.target.value)}
+          >
+            {kelasOptions.map((option, index) => (
+              <MenuItem key={index} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* Select Tahun Ajaran */}
+        <FormControl sx={{ minWidth: 150 }} marginTop={2} variant="outlined" size="small">
+          <InputLabel shrink={true}>Tahun Ajaran</InputLabel>
+          <Select value={tahunAjaran} onChange={(e) => setTahunAjaran(e.target.value)}>
+            {tahunAjaranOptions.map((option, index) => (
+              <MenuItem key={index} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        {/* Tombol Cari */}
+        <Button
+          variant="contained"
+          onClick={fetchData}
+          disabled={loading}
+          marginTop={2}
+        >
+          {loading ? "Memuat..." : "Cari"}
+        </Button>
 
       </Box>
 

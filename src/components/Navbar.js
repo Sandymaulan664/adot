@@ -80,6 +80,7 @@ const Navbar = ({ onLogout }) => {
     }).then((result) => {
       if (result.isConfirmed) {
         onLogout(); // Panggil fungsi logout
+        localStorage.clear()
       }
     });
   };

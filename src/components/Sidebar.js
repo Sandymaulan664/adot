@@ -11,7 +11,7 @@ const Sidebar = () => {
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, link: '/' },
     { text: 'User', icon: <PeopleIcon />, link: '/user' },
-    { text: 'Rekap Data', icon: <StorageIcon />, link: '/rekap_data' },
+    { text: 'Rekap Data Murid', icon: <StorageIcon />, link: '/rekap_data' },
     { text: 'Data Stunting', icon: <GridViewIcon />, link: '/clustering' },
     { text: 'Grafik K-means', icon: <TableChartIcon />, link: '/k_means' },
   ];
