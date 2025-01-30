@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import '../assets/css/User_s.css';
 import axios from 'axios';
+import Kmeans from "../service/Kmeans";
 import {
   Box,
   TextField,
@@ -21,8 +22,13 @@ import {
   Select,
   MenuItem,
   FormControl,
+  Grid
 } from "@mui/material";
-
+// date picker
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+//dayjs
+import dayjs from "dayjs";
 /* icon */
 import {
   Search,
@@ -35,11 +41,30 @@ const RekapData = () => {
   const [datamurid, setDatamurid] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [username, setUsername] = useState(null);
   const [tahunAjaran, setTahunAjaran] = useState(""); // State untuk tahun ajaran
   const [kelas, setKelas] = useState(""); // State untuk kelas
   // Contoh daftar kelas dan tahun ajaran
   const kelasOptions = ["1", "2", "3", "4", "5", "6"];
   const tahunAjaranOptions = ["2021/2022", "2022/2023", "2023/2024"];
+  const jenisKelaminOptions = ["L", "P"]
+
+  // Fetch username from localStorage
+  useEffect(() => {
+    const storedData = localStorage.getItem("data");
+    if (storedData) {
+      try {
+        const parsedData = JSON.parse(storedData);
+        const userData = parsedData[0];
+        const namaLengkap = userData?.attributes?.user_name;
+        setUsername(namaLengkap || "User");
+      } catch (error) {
+        console.error("Failed to parse localStorage data:", error);
+        setUsername("User");
+      }
+    }
+  }, []);
+
 
   const fetchData = async () => {
     try {
@@ -62,11 +87,36 @@ const RekapData = () => {
   /* Add user */
   const [addOpen, setAddOpen] = useState(false);
   const [newUser, setNewUser] = useState({
-    namaLengkap: "",
-    asalSekolah: "",
-    email: "",
+    agama: "",
+    alamat: "",
+    beratBadan: null,
+    createdBy: "",
+    jenisKelamin: "",
+    kelas: null,
+    namaMurid: "",
+    tahunAjaran: "",
+    tanggalLahir: null,
+    tempatLahir: "",
+    tinggiBadan: null,
+    umur: null
   });
-  const handleAddOpen = () => { setNewUser({ namaLengkap: "", asalSekolah: "", email: "" }); setAddOpen(true); };
+  const handleAddOpen = () => {
+    setNewUser({
+      agama: "",
+      alamat: "",
+      beratBadan: null,
+      createdBy: username,
+      jenisKelamin: "",
+      kelas: null,
+      namaMurid: "",
+      tahunAjaran: "",
+      tanggalLahir: "",
+      tempatLahir: "",
+      tinggiBadan: null,
+      umur: null
+    });
+    setAddOpen(true);
+  };
   const handleAddClose = () => { setAddOpen(false); };
   const handleAddSubmit = () => {
     handleAddClose();
@@ -81,9 +131,16 @@ const RekapData = () => {
         confirmButtonText: "Save",
         cancelButtonText: "Cancel",
         reverseButtons: true,
-      }).then((result) => {
+      }).then(async (result) => {
         if (result.isConfirmed) {
-          setDatamurid([...datamurid, { ...newUser, id: datamurid.length + 1, isActive: true }]);
+          console.log(newUser)
+          const response = await Kmeans.post('/stunting/insertDataMurid', newUser);
+          if (response.status === 200) {
+            Swal.fire("Berhasil!", response.message, response.tipsStunting);
+            window.location.reload();
+          } else {
+            Swal.fire("Gagal!", "Terjadi kesalahan saat menyimpan data.", "error");
+          }
           Swal.fire("Berhasil!", "Data berhasil disimpan.", "success");
         }
       });
@@ -124,13 +181,34 @@ const RekapData = () => {
         confirmButtonText: "Save",
         cancelButtonText: "Cancel",
         reverseButtons: true,
-      }).then((result) => {
+      }).then(async (result) => {
         if (result.isConfirmed) {
-          const updatedData = datamurid.map((user) =>
-            user.id === selectedUser.id ? { ...selectedUser } : user
-          );
-          setDatamurid(updatedData);
-          Swal.fire("Berhasil!", "Data berhasil diperbarui.", "success");
+          const updatedData = {
+            agama: selectedUser.agama,
+            alamat: selectedUser.alamat,
+            beratBadan: selectedUser.beratBadan,
+            lastModifiedBy: username,
+            jenisKelamin: selectedUser.jenisKelamin,
+            kelas: selectedUser.kelas,
+            namaMurid: selectedUser.namaMurid,
+            tahunAjaran: selectedUser.tahunAjaran,
+            tanggalLahir: selectedUser.tanggalLahir,
+            tempatLahir: selectedUser.tempatLahir,
+            tinggiBadan: selectedUser.tinggiBadan,
+            umur: selectedUser.umur,
+            idMurid: selectedUser.idMurid
+          };
+
+          console.log(updatedData)
+
+          const response = await Kmeans.post('/stunting/updateDataMurid', updatedData);
+          if (response.status === 200) {
+            Swal.fire("Berhasil!", response.message, response.tipsStunting);
+            window.location.reload();
+          } else {
+            Swal.fire("Gagal!", "Terjadi kesalahan saat menyimpan data.", "error");
+          }
+          Swal.fire("Berhasil!", "Data berhasil disimpan.", "success");
         }
       });
     }, 300);
@@ -141,7 +219,9 @@ const RekapData = () => {
 
 
   /* Delete */
-  const handleDelete = (userId) => {
+  const handleDelete = async (idMurid) => {
+    console.log('ID User yang akan dihapus:', idMurid);
+
     Swal.fire({
       title: "Apakah Anda yakin?",
       text: "Data yang dihapus tidak dapat dikembalikan!",
@@ -151,11 +231,25 @@ const RekapData = () => {
       cancelButtonColor: "#3085d6",
       cancelButtonText: "Cancel",
       confirmButtonText: "Delete!",
-      reverseButtons: true
-    }).then((result) => {
+      reverseButtons: true,
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        setDatamurid(datamurid.filter((user) => user.id !== userId));
-        Swal.fire("Terhapus!", "Data berhasil dihapus.", "success");
+
+        try {
+          const response = await Kmeans.post(`/stunting/deleteDataMurid?idMurid=${idMurid}`);
+
+          console.log('Respons dari server:', response);
+
+          if (response.status === 200) {
+            Swal.fire("Terhapus!", "Data berhasil dihapus.", "success");
+            window.location.reload();
+          } else {
+            Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus data.", "error");
+          }
+        } catch (err) {
+          console.error(err);
+          Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus data.", "error");
+        }
       }
     });
   };
@@ -168,13 +262,14 @@ const RekapData = () => {
   const paginatedData = datamurid.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <Box sx={{ padding: 2 }}>
+
+    <Box sx={{ padding: 5, marginTop: "50px", minHeight: "100vh" }}>
       {/* Select Kelas */}
-      <Box sx={{ display: "flex",  gap: 2, alignItems: "center"}}>
+      <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
 
         <Box className="add-user-container" >
           <IconButton onClick={handleAddOpen} className="add-user-button" marginTop={2}>
-            <Typography className="add-user-text"> Add User </Typography>
+            <Typography className="add-user-text"> Tambah Murid </Typography>
             <Add className="add-user-icon" />
           </IconButton>
         </Box>
@@ -246,7 +341,6 @@ const RekapData = () => {
               <TableCell className="table-cell-head"> Berat Badan  </TableCell>
               <TableCell className="table-cell-head"> Tahun   Ajaran  </TableCell>
               <TableCell className="table-cell-head"> Kelas  </TableCell>
-              <TableCell className="table-cell-head"> Status </TableCell>
               <TableCell className="table-cell-head"> Action </TableCell>
             </TableRow>
           </TableHead>
@@ -268,12 +362,9 @@ const RekapData = () => {
                   <TableCell className="table-cell-body">{murid.beratBadan}</TableCell>
                   <TableCell className="table-cell-body">{murid.tahunAjaran}</TableCell>
                   <TableCell className="table-cell-body">{murid.kelas}</TableCell>
-                  <TableCell className={`table-cell-body ${murid.isActive ? 'status-active' : 'status-inactive'}`}>
-                    {murid.isActive ? 'Active' : 'Inactive'}
-                  </TableCell>
                   <TableCell className="action-cell">
                     <IconButton color="primary" onClick={() => handleEditOpen(murid)}> <Edit /> </IconButton>
-                    <IconButton onClick={() => handleDelete(murid.id)} className="delete-button">
+                    <IconButton onClick={() => handleDelete(murid.idMurid)} className="delete-button">
                       <Delete />
                     </IconButton>
                   </TableCell>
@@ -308,106 +399,317 @@ const RekapData = () => {
       </Box>
 
       {/* Modal untuk Tambah User */}
-      <Modal open={addOpen} onClose={handleAddClose}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-          }}
-        >
-          <Typography variant="h6" component="h2" mb={2}> Tambah User Baru </Typography>
-          <TextField
-            fullWidth
-            label="Nama Lengkap"
-            value={newUser.namaLengkap}
-            onChange={(e) => handleNewChange("namaLengkap", e.target.value)}
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Asal Sekolah"
-            value={newUser.asalSekolah}
-            onChange={(e) => handleNewChange("asalSekolah", e.target.value)}
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Email"
-            value={newUser.email}
-            onChange={(e) => handleNewChange("email", e.target.value)}
-            margin="normal"
-          />
-          <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
-            <Button variant="contained" color="secondary" onClick={handleAddClose}> Cancel </Button>
-            <Button variant="contained" color="primary" onClick={handleAddSubmit}> Save </Button>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Modal open={addOpen} onClose={handleAddClose}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: "90%",
+              maxWidth: 600,
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              p: 4,
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="h6" component="h2" mb={2}>
+              Tambah Murid Baru
+            </Typography>
+
+            {/* Grid Container untuk membagi dua kolom */}
+            <Grid container spacing={2}>
+              {/* Kolom Kiri */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Nama Lengkap"
+                  value={newUser.namaMurid}
+                  onChange={(e) => handleNewChange("namaMurid", e.target.value)}
+                  margin="normal"
+                />
+                <TextField
+                  fullWidth
+                  label="Agama"
+                  value={newUser.agama}
+                  onChange={(e) => handleNewChange("agama", e.target.value)}
+                  margin="normal"
+                />
+                <TextField
+                  fullWidth
+                  label="Alamat"
+                  value={newUser.alamat}
+                  onChange={(e) => handleNewChange("alamat", e.target.value)}
+                  margin="normal"
+                />
+                <TextField
+                  fullWidth
+                  label="Tempat Lahir"
+                  value={newUser.tempatLahir}
+                  onChange={(e) => handleNewChange("tempatLahir", e.target.value)}
+                  margin="normal"
+                />
+              </Grid>
+
+              {/* Kolom Kanan */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Umur"
+                  value={newUser.umur}
+                  onChange={(e) => handleNewChange("umur", e.target.value)}
+                  margin="normal"
+                />
+                <TextField
+                  fullWidth
+                  label="Tinggi Badan"
+                  value={newUser.tinggiBadan}
+                  onChange={(e) => handleNewChange("tinggiBadan", e.target.value)}
+                  margin="normal"
+                />
+                <TextField
+                  fullWidth
+                  label="Berat Badan"
+                  value={newUser.beratBadan}
+                  onChange={(e) => handleNewChange("beratBadan", e.target.value)}
+                  margin="normal"
+                />
+
+                <DatePicker
+                  label="Tanggal Lahir"
+                  value={newUser.tanggalLahir ? dayjs(newUser.tanggalLahir) : null}  // Ensure it's a Day.js object
+                  onChange={(newValue) => {
+                    handleNewChange("tanggalLahir", newValue ? dayjs(newValue).format("YYYY-MM-DD") : "");
+                  }}
+                  renderInput={(params) => <TextField {...params} fullWidth />}
+                />
+              </Grid>
+            </Grid>
+
+            {/* Kolom Kelas dan Tahun Ajaran menggunakan FormControl */}
+            <Grid container spacing={2} mt={2}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth size="small">
+                  <InputLabel shrink={true}>Kelas</InputLabel>
+                  <Select
+                    value={newUser.kelas}
+                    onChange={(e) => handleNewChange("kelas", e.target.value)}
+                  >
+                    {kelasOptions.map((option, index) => (
+                      <MenuItem key={index} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth size="small">
+                  <InputLabel shrink={true}>Tahun Ajaran</InputLabel>
+                  <Select
+                    value={newUser.tahunAjaran}
+                    onChange={(e) => handleNewChange("tahunAjaran", e.target.value)}
+                  >
+                    {tahunAjaranOptions.map((option, index) => (
+                      <MenuItem key={index} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth size="small">
+                  <InputLabel shrink={true}>Jenis Kelamin</InputLabel>
+                  <Select
+                    value={newUser.jenisKelamin}
+                    onChange={(e) => handleNewChange("jenisKelamin", e.target.value)}
+                  >
+                    {jenisKelaminOptions.map((option, index) => (
+                      <MenuItem key={index} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+
+            {/* Tombol Aksi */}
+            <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
+              <Button variant="contained" color="secondary" onClick={handleAddClose}>
+                Cancel
+              </Button>
+              <Button variant="contained" color="primary" onClick={handleAddSubmit}>
+                Save
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      </Modal>
+        </Modal >
+      </LocalizationProvider>
 
 
       {/* Modal untuk Edit User */}
-      <Modal open={editOpen} onClose={handleEditClose}>
-        <Box sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: 400,
-          bgcolor: "background.paper",
-          boxShadow: 24,
-          p: 4,
-          borderRadius: 2,
-        }}
-        >
-          <Typography variant="h6" component="h2" mb={2}> Edit User </Typography>
-          {selectedUser && (
-            <>
-              <TextField
-                fullWidth
-                label="Username"
-                value={selectedUser.userName}
-                onChange={(e) => handleEditChange("userName", e.target.value)}
-                margin="normal"
-              />
-              <TextField
-                fullWidth
-                label="Nama Lengkap"
-                value={selectedUser.namaLengkap}
-                onChange={(e) => handleEditChange("namaLengkap", e.target.value)}
-                margin="normal"
-              />
-              <TextField
-                fullWidth
-                label="Email"
-                value={selectedUser.email}
-                onChange={(e) => handleEditChange("email", e.target.value)}
-                margin="normal"
-              />
-              <TextField
-                fullWidth
-                label="Asal Sekolah"
-                value={selectedUser.asalSekolah}
-                onChange={(e) => handleEditChange("asalSekolah", e.target.value)}
-                margin="normal"
-              />
+      {selectedUser && (
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Modal open={editOpen} onClose={handleEditClose}>
+            <Box
+              sx={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "90%",
+                maxWidth: 600,
+                bgcolor: "background.paper",
+                boxShadow: 24,
+                p: 4,
+                borderRadius: 2,
+              }}
+            >
+              <Typography variant="h6" component="h2" mb={2}>
+                Edit Data Murid
+              </Typography>
 
+              {/* Grid Container untuk membagi dua kolom */}
+              <Grid container spacing={2}>
+                {/* Kolom Kiri */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Nama Lengkap"
+                    value={selectedUser.namaMurid}
+                    onChange={(e) => handleEditChange("namaMurid", e.target.value)}
+                    margin="normal"
+                  />
+                  <TextField
+                    fullWidth
+                    label="Agama"
+                    value={selectedUser.agama}
+                    onChange={(e) => handleEditChange("agama", e.target.value)}
+                    margin="normal"
+                  />
+                  <TextField
+                    fullWidth
+                    label="Alamat"
+                    value={selectedUser.alamat}
+                    onChange={(e) => handleEditChange("alamat", e.target.value)}
+                    margin="normal"
+                  />
+                  <TextField
+                    fullWidth
+                    label="Tempat Lahir"
+                    value={selectedUser.tempatLahir}
+                    onChange={(e) => handleEditChange("tempatLahir", e.target.value)}
+                    margin="normal"
+                  />
+                </Grid>
+
+                {/* Kolom Kanan */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Umur"
+                    value={selectedUser.umur}
+                    onChange={(e) => handleEditChange("umur", e.target.value)}
+                    margin="normal"
+                  />
+                  <TextField
+                    fullWidth
+                    label="Tinggi Badan"
+                    value={selectedUser.tinggiBadan}
+                    onChange={(e) => handleEditChange("tinggiBadan", e.target.value)}
+                    margin="normal"
+                  />
+                  <TextField
+                    fullWidth
+                    label="Berat Badan"
+                    value={selectedUser.beratBadan}
+                    onChange={(e) => handleEditChange("beratBadan", e.target.value)}
+                    margin="normal"
+                  />
+
+                  <DatePicker
+                    label="Tanggal Lahir"
+                    value={selectedUser.tanggalLahir ? dayjs(selectedUser.tanggalLahir) : null}  // Ensure it's a Day.js object
+                    onChange={(newValue) => {
+                      handleEditChange("tanggalLahir", newValue ? dayjs(newValue).format("YYYY-MM-DD") : "");
+                    }}
+                    renderInput={(params) => <TextField {...params} fullWidth />}
+                  />
+                </Grid>
+              </Grid>
+
+              {/* Kolom Kelas dan Tahun Ajaran menggunakan FormControl */}
+              <Grid container spacing={2} mt={2}>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel shrink={true}>Kelas</InputLabel>
+                    <Select
+                      value={selectedUser.kelas}
+                      onChange={(e) => handleEditChange("kelas", e.target.value)}
+                    >
+                      {kelasOptions.map((option, index) => (
+                        <MenuItem key={index} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel shrink={true}>Tahun Ajaran</InputLabel>
+                    <Select
+                      value={selectedUser.tahunAjaran}
+                      onChange={(e) => handleEditChange("tahunAjaran", e.target.value)}
+                    >
+                      {tahunAjaranOptions.map((option, index) => (
+                        <MenuItem key={index} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel shrink={true}>Jenis Kelamin</InputLabel>
+                    <Select
+                      value={selectedUser.jenisKelamin}
+                      onChange={(e) => handleEditChange("jenisKelamin", e.target.value)}
+                    >
+                      {jenisKelaminOptions.map((option, index) => (
+                        <MenuItem key={index} value={option}>
+                          {option}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+
+              {/* Tombol Aksi */}
               <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>
-                <Button variant="contained" color="secondary" onClick={handleEditClose}> Cancel </Button>
-                <Button variant="contained" color="primary" onClick={handleEditSubmit}> Save</Button>
+                <Button variant="contained" color="secondary" onClick={handleEditClose}>
+                  Cancel
+                </Button>
+                <Button variant="contained" color="primary" onClick={handleEditSubmit}>
+                  Save
+                </Button>
               </Box>
-            </>
-          )}
-        </Box>
-      </Modal>
+            </Box>
+          </Modal >
+        </LocalizationProvider>
+      )}
 
-    </Box>
+    </Box >
   );
 };
 

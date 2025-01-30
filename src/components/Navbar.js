@@ -88,7 +88,7 @@ const Navbar = ({ onLogout }) => {
 
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: "#002147" }}>
+    <AppBar position="fixed" sx={{ backgroundColor: "#002147" }}>
       <Toolbar
         sx={{
           display: "flex",

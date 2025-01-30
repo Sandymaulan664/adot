@@ -221,7 +221,7 @@ const PengaturanUser = () => {
   const paginatedData = Array.isArray(userdata) ? userdata.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) : [];
 
   return (
-    <Box sx={{ padding: 2, }}>
+    <Box sx={{ padding: 5, marginTop:"50px", minHeight: "200vh" }}>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }}>
 

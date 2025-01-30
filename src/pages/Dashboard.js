@@ -118,7 +118,7 @@ const Dashboard = () => {
     }
 
     return (
-        <Box sx={{ padding: 3, backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
+        <Box sx={{ padding: 3, marginTop:"50px", minHeight: "100vh" }}>
             <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                     <Paper elevation={3} sx={{ padding: 3, textAlign: "center", borderRadius: "12px", backgroundColor: "#ffffff" }}>
