@@ -160,6 +160,7 @@ const PengaturanUser = () => {
               );
               setUserdata(updatedData);
               Swal.fire("Berhasil!", "Data berhasil diperbarui.", "success");
+              window.location.reload();
             } else {
               Swal.fire("Gagal!", "Terjadi kesalahan saat memperbarui data.", "error");
             }
@@ -204,6 +205,7 @@ const PengaturanUser = () => {
           if (response.status === 200) {
             setUserdata(userdata.filter((user) => user.idUser !== idUser));
             Swal.fire("Terhapus!", "Data berhasil dihapus.", "success");
+            window.location.reload();
           } else {
             Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus data.", "error");
           }
@@ -416,7 +418,7 @@ const PengaturanUser = () => {
                 onChange={(e) => handleEditChange("asalSekolah", e.target.value)}
                 margin="normal"
               />
-             {/*  hidupin klo mau update status
+              {/* hidupin klo mau update status */}
               <Typography variant="body2" margin="normal">
                 <Box display="flex" justifyContent="space-between">
                   
@@ -437,7 +439,7 @@ const PengaturanUser = () => {
                     Deactivate
                   </Button>
                 </Box>
-              </Typography> */}
+              </Typography>
 
 
               <Box mt={2} display="flex" justifyContent="flex-end" gap={1}>

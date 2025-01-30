@@ -69,7 +69,7 @@ const App = () => {
           }
         />
         <Route
-          path="/data_stunting"
+          path="/data-stunting"
           element={
             isAuthenticated ? (
               <Layout onLogout={logout}>

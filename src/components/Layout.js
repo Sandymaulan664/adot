@@ -1,6 +1,7 @@
 import React from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
+import Footer from './Footer';
 
 const Layout = ({ onLogout, children }) => {
   return (
@@ -8,12 +9,12 @@ const Layout = ({ onLogout, children }) => {
       <Navbar onLogout={onLogout} />
       
       <div style={{ display: 'flex', flex: 1 }}>
-        <div style={{display: 'fixed'}}>
         <Sidebar />
         <main style={{ flex: 1, marginLeft: '240px', padding: '20px'}}>
           {children}
         </main>
       </div>
+      <Footer />
     </div>
   );
 };
