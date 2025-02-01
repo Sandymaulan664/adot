@@ -14,6 +14,8 @@ import {
   TableRow,
   Paper,
   Typography,
+  Accordion,
+  AccordionSummary
 } from "@mui/material";
 import Kmeans from "../service/Kmeans"; // Axios instance with base URL
 
@@ -81,11 +83,13 @@ const GrafikKmeans = () => {
 
 
   return (
-    <Box sx={{ padding: 5, marginTop: "50px", minHeight: "200vh" }}>
+    <Box sx={{ padding: 3, marginTop: "50px", minHeight: "100vh" }}>
       {/* Judul Halaman */}
-      <Typography variant="h4" gutterBottom>
-        GRAFIK CLUSTERING
-      </Typography>
+      <Accordion sx={{ backgroundColor: "#0a32b8", color: "white" }}>
+        <AccordionSummary >
+          <Typography variant="h8"> Grafik K-Means </Typography>
+        </AccordionSummary>
+      </Accordion>
 
       {/* Input Parameter */}
       <Box
@@ -93,6 +97,7 @@ const GrafikKmeans = () => {
           display: "flex",
           gap: 2,
           alignItems: "center",
+          marginTop: 2,
           marginBottom: 4,
         }}
       >

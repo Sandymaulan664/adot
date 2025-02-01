@@ -37,6 +37,7 @@ import {
 const Navbar = ({ onLogout }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [pengaturanOpen, setPengaturanOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -48,7 +49,9 @@ const Navbar = ({ onLogout }) => {
         const parsedData = JSON.parse(storedData);
         const userData = parsedData[0];
         const namaLengkap = userData?.attributes?.user?.namaLengkap;
+        const emailuser = userData?.attributes?.user?.email;
         setUsername(namaLengkap || "User");
+        setEmail(emailuser || "user.example@mail.com")
       } catch (error) {
         console.error("Failed to parse localStorage data:", error);
         setUsername("User");
@@ -88,33 +91,33 @@ const Navbar = ({ onLogout }) => {
 
 
   return (
-    <AppBar position="fixed" sx={{ backgroundColor: "#002147" }}>
+    <AppBar position="fixed" sx={{ backgroundColor: "#FFFFFF" }}>
       <Toolbar
         sx={{
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           alignItems: "center",
         }}
       >
 
-        {/* Logo */}
+        {/* Logo
         <div style={{ flexGrow: 1, textAlign: "center" }}>
           <img
             src={Logo}
             alt="Logo"
             style={{ maxHeight: "50px", objectFit: "contain" }}
           />
-        </div>
+        </div> */}
 
 
         <div>
           <IconButton
             color="inherit"
             onClick={handleMenuClick}
-            sx={{ display: "flex", alignItems: "center", gap: "8px" }}
+            sx={{ display: "flex", alignItems: "center", gap: '8px', color: "#002147" }}
           >
             <AccountCircle />
-            <Typography variant="body1" sx={{ color: "white" }}>
+            <Typography variant="body1" sx={{ color: "#002147" }}>
               Hi, {username}
             </Typography>
           </IconButton>
@@ -137,16 +140,12 @@ const Navbar = ({ onLogout }) => {
               <Avatar sx={{ marginRight: 2, fontSize: 80 }} />
               <div>
                 <Typography sx={{ fontSize: "18px", fontWeight: "bold", color: "#616161" }}> {username}</Typography>
-                <Typography sx={{ fontSize: "14px", color: "#757575" }}>konci@gmail.com</Typography>
+                <Typography sx={{ fontSize: "14px", color: "#757575" }}>{email}</Typography>
               </div>
             </MenuItem>
             <MenuItem>
               <Person sx={{ marginRight: 1, color: '#616161' }} />
               <Typography sx={{ fontSize: "14px", color: "#616161" }}>  My Profile</Typography>
-            </MenuItem>
-            <MenuItem >
-              <SettingsIcon sx={{ marginRight: 1, color: '#616161' }} />
-              <Typography sx={{ fontSize: "14px", color: "#616161" }}> Pengaturan</Typography>
             </MenuItem>
             <MenuItem onClick={handleLogoutClick}>
               <PowerSettingsNewIcon sx={{ marginRight: 1, color: '#616161' }} />

@@ -14,7 +14,11 @@ import {
   TableRow,
   Paper,
   Typography,
+  Pagination,
+  Accordion,
+  AccordionSummary
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import murid from "../service/Kmeans"; // Axios instance with base URL
 
 const DataMuridStunting = () => {
@@ -46,12 +50,22 @@ const DataMuridStunting = () => {
     }
   };
 
+  /* pagination */
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const paginatedData = dataMurid.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
   return (
-    <Box sx={{ padding: 4 }}>
+    <Box sx={{ padding: 1, marginTop: "45px", minHeight: "100vh" }}>
       {/* Judul Halaman */}
-      <Typography variant="h4" gutterBottom>
+      <Accordion sx={{margin: 2, backgroundColor: "#0a32b8", color: "white"}}>
+        <AccordionSummary >
+          <Typography variant="h8"> Data Murid Terindikasi Stunting</Typography>
+        </AccordionSummary>
+      </Accordion>
+      {/* <Typography variant="h4" gutterBottom margin={2}>
         Data Murid Terindikasi Stunting
-      </Typography>
+      </Typography> */}
 
       {/* Input Parameter */}
       <Box
@@ -59,11 +73,18 @@ const DataMuridStunting = () => {
           display: "flex",
           gap: 2,
           alignItems: "center",
-          marginBottom: 4,
+          margin: 2,
+          width: {
+            xs: 800, // theme.breakpoints.up('xs')
+            sm: 900, // theme.breakpoints.up('sm')
+            md: 1000, // theme.breakpoints.up('md')
+            lg: 1100, // theme.breakpoints.up('lg')
+            xl: 1200, // theme.breakpoints.up('xl')
+          }
         }}
       >
         {/* Select Tahun Ajaran */}
-        <FormControl fullWidth>
+        <FormControl sx={{ minWidth: 150 }} marginTop={2} variant="outlined" size="small">
           <InputLabel>Tahun Ajaran</InputLabel>
           <Select
             value={tahunAjaran}
@@ -78,7 +99,7 @@ const DataMuridStunting = () => {
         </FormControl>
 
         {/* Select Kelas */}
-        <FormControl fullWidth>
+        <FormControl sx={{ minWidth: 150 }} marginTop={2} variant="outlined" size="small">
           <InputLabel>Kelas</InputLabel>
           <Select
             value={kelas}
@@ -108,49 +129,84 @@ const DataMuridStunting = () => {
           {error}
         </Typography>
       )}
-
-      {/* Table Data Murid */}
-      {dataMurid.length > 0 && (
-        <TableContainer component={Paper}>
-          <Table>
+      <Box
+        sx={{
+          margin: 2,
+          width: {
+            xs: 800, // theme.breakpoints.up('xs')
+            sm: 900, // theme.breakpoints.up('sm')
+            md: 1000, // theme.breakpoints.up('md')
+            lg: 1100, // theme.breakpoints.up('lg')
+            xl: 1200, // theme.breakpoints.up('xl')
+          }
+        }}
+      >
+        {/* Table Data Murid */}
+        <TableContainer component={Paper} style={{ width: '100%', margin: '0 auto' }}>
+          <Table style={{ tableLayout: 'fixed', width: '100%' }}>
             <TableHead>
-              <TableRow>
-                <TableCell>No</TableCell>
-                <TableCell>Nama</TableCell>
-                <TableCell>Kelas</TableCell>
-                <TableCell>Jenis Kelamin</TableCell>
-                <TableCell>Tempat Tanggal Lahir</TableCell>
-                <TableCell>Umur</TableCell>
-                <TableCell>Tinggi Badan</TableCell>
-                <TableCell>Berat Badan</TableCell>
-                <TableCell>Tahun Ajaran</TableCell>
+              <TableRow className="table-head-row">
+                <TableCell className="table-cell-head">No</TableCell>
+                <TableCell className="table-cell-head">Nama</TableCell>
+                <TableCell className="table-cell-head">Kelas</TableCell>
+                <TableCell className="table-cell-head">Jenis Kelamin</TableCell>
+                <TableCell className="table-cell-head">Tempat Tanggal Lahir</TableCell>
+                <TableCell className="table-cell-head">Umur</TableCell>
+                <TableCell className="table-cell-head">Tinggi Badan</TableCell>
+                <TableCell className="table-cell-head">Berat Badan</TableCell>
+                <TableCell className="table-cell-head">Tahun Ajaran</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {dataMurid.map((rekapmurid, index) => (
-                <TableRow key={index}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{rekapmurid.namaMurid}</TableCell>
-                  <TableCell>{rekapmurid.kelas}</TableCell>
-                  <TableCell>{rekapmurid.jenisKelamin}</TableCell>
-                  <TableCell>{rekapmurid.tempatTanggalLahir}</TableCell>
-                  <TableCell>{rekapmurid.umur}</TableCell>
-                  <TableCell>{rekapmurid.tinggiBadan}</TableCell>
-                  <TableCell>{rekapmurid.beratBadan}</TableCell>
-                  <TableCell>{rekapmurid.tahunAjaran}</TableCell>
+              {paginatedData.length > 0 ? (
+                paginatedData.map((dataMurid, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="table-cell-body">{index + 1 + page * rowsPerPage}</TableCell>
+                    <TableCell className="table-cell-body">{dataMurid.namaMurid}</TableCell>
+                    <TableCell className="table-cell-body">{dataMurid.kelas}</TableCell>
+                    <TableCell className="table-cell-body">{dataMurid.jenisKelamin}</TableCell>
+                    <TableCell className="table-cell-body">{dataMurid.tempatTanggalLahir}</TableCell>
+                    <TableCell className="table-cell-body">{dataMurid.umur}</TableCell>
+                    <TableCell className="table-cell-body">{dataMurid.tinggiBadan}</TableCell>
+                    <TableCell className="table-cell-body">{dataMurid.beratBadan}</TableCell>
+                    <TableCell className="table-cell-body">{dataMurid.tahunAjaran}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" className="no-data">
+                    Tidak ada data untuk ditampilkan
+                  </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </TableContainer>
-      )}
 
-      {/* Pesan jika data kosong */}
-      {dataMurid.length === 0 && !loading && !error && (
-        <Typography sx={{ marginTop: 4 }}>
-          Data murid tidak ditemukan. Silakan pilih parameter.
-        </Typography>
-      )}
+        {/* Pagnation  */}
+        <Box className="pagination-container">
+          <p></p>
+          <Pagination
+            count={Math.ceil(dataMurid.length / rowsPerPage)}
+            page={page + 1}
+            onChange={(event, value) => setPage(value - 1)}
+            siblingCount={1}
+            sx={{
+              "& .MuiPaginationItem-root": { color: "#757575", },
+              "& .MuiPaginationItem-root.Mui-selected": { color: "#ffffff", backgroundColor: "#757575", },
+              "& .MuiPaginationItem-root:hover": { backgroundColor: "#e0e0e0", }
+            }}
+          />
+          <p></p>
+        </Box>
+
+        {/* Pesan jika data kosong
+        {dataMurid.length === 0 && !loading && !error && (
+          <Typography sx={{ marginTop: 4 }}>
+            Data murid tidak ditemukan. Silakan pilih parameter.
+          </Typography>
+        )} */}
+      </Box>
     </Box>
   );
 };

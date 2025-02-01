@@ -22,7 +22,9 @@ import {
   Select,
   MenuItem,
   FormControl,
-  Grid
+  Grid,
+  Accordion,
+  AccordionSummary
 } from "@mui/material";
 // date picker
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -263,10 +265,16 @@ const RekapData = () => {
 
   return (
 
-    <Box sx={{ padding: 5, marginTop: "50px", minHeight: "100vh" }}>
-      {/* Select Kelas */}
-      <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+    <Box sx={{ padding: 1, marginTop: "50px", minHeight: "100vh" }}>
 
+      <Accordion sx={{ backgroundColor: "#0a32b8", color: "white" }}>
+        <AccordionSummary >
+          <Typography variant="h8"> Rekap Data Murid</Typography>
+        </AccordionSummary>
+      </Accordion>
+
+      <Box sx={{ display: "flex", gap: 2, alignItems: "center", marginTop: 2 }}>
+        {/* Select Kelas */}
         <Box className="add-user-container" >
           <IconButton onClick={handleAddOpen} className="add-user-button" marginTop={2}>
             <Typography className="add-user-text"> Tambah Murid </Typography>

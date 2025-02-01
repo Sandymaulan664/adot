@@ -23,6 +23,8 @@ import {
   Modal,
   Pagination,
   IconButton,
+  Accordion,
+  AccordionSummary,
 } from "@mui/material";
 
 const PengaturanUser = () => {
@@ -223,9 +225,15 @@ const PengaturanUser = () => {
   const paginatedData = Array.isArray(userdata) ? userdata.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) : [];
 
   return (
-    <Box sx={{ padding: 5, marginTop:"50px", minHeight: "200vh" }}>
+    <Box sx={{ padding: 3, marginTop: "50px", minHeight: "100vh" }}>
 
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", }}>
+      <Accordion sx={{ backgroundColor: "#0a32b8", color: "white" }}>
+        <AccordionSummary >
+          <Typography variant="h8"> Daftar dan Pengaturan User </Typography>
+        </AccordionSummary>
+      </Accordion>
+
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 2 }}>
 
         <Box className="add-user-container">
           <IconButton onClick={handleAddOpen} className="add-user-button">
@@ -421,7 +429,7 @@ const PengaturanUser = () => {
               {/* hidupin klo mau update status */}
               <Typography variant="body2" margin="normal">
                 <Box display="flex" justifyContent="space-between">
-                  
+
                   <Button
                     variant="contained"
                     color="success"
@@ -434,7 +442,7 @@ const PengaturanUser = () => {
                     variant="contained"
                     color="error"
                     disabled={!selectedUser?.isActive}
-                    onClick={() => toggleUserStatus(false)} 
+                    onClick={() => toggleUserStatus(false)}
                   >
                     Deactivate
                   </Button>
